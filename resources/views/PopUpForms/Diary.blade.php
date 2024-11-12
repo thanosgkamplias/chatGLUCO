@@ -218,6 +218,17 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
+    // Debounce function to limit the rate at which a function can fire.
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                func.apply(context, args);
+            }, wait);
+        };
+    }
 
     $(document).ready(function (){
 
@@ -702,7 +713,8 @@
 
 
 
-        $('#search-food').on('input', function() {
+// Implement debounce on the search-food input
+        $('#search-food').on('input', debounce(function() {
             var food = $(this).val(); // Get the value from the input field
 
             $('#autocomplete_create').empty();
@@ -714,26 +726,17 @@
                     }
                 })
                     .then(function (response) {
-                        // Clear the current list
-
-
-                        // // Assuming the response contains the list of food names
                         var foodNames = response.data.food_names;
 
                         // Populate the autocomplete list with the returned data
                         foodNames.forEach(function(name) {
-                            const listItem = $('<li ></li>').text(name);
-
-
-
+                            const listItem = $('<li></li>').text(name);
                             // Append the list item to the autocomplete list
                             $('#autocomplete_create').append(listItem);
                         });
 
                         // Show the autocomplete list
                         $('#autocomplete_create').show();
-
-
                     })
                     .catch(function (error) {
                         console.log('Error fetching autocomplete results.', error);
@@ -742,25 +745,10 @@
                 // Clear the list if the input is empty
                 $('#autocomplete_create').hide();
             }
-        });
+        }, 200)); // 200 milliseconds debounce time
 
-
-
-        // Hide the suggestions if the user clicks outside
-        $(document).on('click', function(e) {
-            if (!$("#search-food").is(e.target) && !$('#autocomplete_create').is(e.target) && $('#autocomplete_create').has(e.target).length === 0) {
-                $('#autocomplete_create').hide();
-            }
-        });
-// Event delegation for dynamically created <li> elements
-        $('#autocomplete_create').on('click', 'li', function() {
-            const selectedText = $(this).text();  // Get the text of the clicked <li>
-            $("#search-food").val(selectedText);  // Set input value to the selected food name
-            $('#autocomplete_create').empty();  // Clear the suggestion list
-        });
-
-
-        $('#search-food_up').on('input', function() {
+        // Implement debounce on the search-food_up input
+        $('#search-food_up').on('input', debounce(function() {
             var food = $(this).val(); // Get the value from the input field
 
             $('#autocomplete_update').empty();
@@ -772,26 +760,17 @@
                     }
                 })
                     .then(function (response) {
-                        // Clear the current list
-
-
-                        // // Assuming the response contains the list of food names
                         var foodNames = response.data.food_names;
 
                         // Populate the autocomplete list with the returned data
                         foodNames.forEach(function(name) {
-                            const listItem = $('<li ></li>').text(name);
-
-
-
+                            const listItem = $('<li></li>').text(name);
                             // Append the list item to the autocomplete list
                             $('#autocomplete_update').append(listItem);
                         });
 
                         // Show the autocomplete list
                         $('#autocomplete_update').show();
-
-
                     })
                     .catch(function (error) {
                         console.log('Error fetching autocomplete results.', error);
@@ -800,21 +779,32 @@
                 // Clear the list if the input is empty
                 $('#autocomplete_update').hide();
             }
-        });
-
-
+        }, 200)); // 200 milliseconds debounce time
 
         // Hide the suggestions if the user clicks outside
         $(document).on('click', function(e) {
+            if (!$("#search-food").is(e.target) && !$('#autocomplete_create').is(e.target) && $('#autocomplete_create').has(e.target).length === 0) {
+                $('#autocomplete_create').hide();
+            }
             if (!$("#search-food_up").is(e.target) && !$('#autocomplete_update').is(e.target) && $('#autocomplete_update').has(e.target).length === 0) {
                 $('#autocomplete_update').hide();
             }
         });
-// Event delegation for dynamically created <li> elements
+
+        // Event delegation for dynamically created <li> elements in create modal
+        $('#autocomplete_create').on('click', 'li', function() {
+            const selectedText = $(this).text();  // Get the text of the clicked <li>
+            $("#search-food").val(selectedText);  // Set input value to the selected food name
+            $('#autocomplete_create').empty();  // Clear the suggestion list
+            $('#autocomplete_create').hide();   // Hide the suggestion list
+        });
+
+        // Event delegation for dynamically created <li> elements in update modal
         $('#autocomplete_update').on('click', 'li', function() {
             const selectedText = $(this).text();  // Get the text of the clicked <li>
             $("#search-food_up").val(selectedText);  // Set input value to the selected food name
             $('#autocomplete_update').empty();  // Clear the suggestion list
+            $('#autocomplete_update').hide();   // Hide the suggestion list
         });
 
 

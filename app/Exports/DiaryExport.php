@@ -37,7 +37,6 @@ class DiaryExport implements FromCollection, WithHeadings, WithStyles, WithColum
         $data = PatientStatistic::where('patient_id', $this->patient_id)
             ->select('created_at', 'glucose_old', 'food_carbo', 'insulin_dose', 'glucose_new','weight')
             ->orderBy('created_at', 'desc')
-            ->take(90)
             ->get()
             ->map(function ($item) {
                 $item->created_at = (string) date('d-m-Y H:i:s', strtotime($item->created_at));

@@ -32,6 +32,11 @@
 <body>
 <div id="app">
 
+    <!-- Redirect authenticated users to 'Diary' if they try to access the login page -->
+    @if (auth()->check())
+        <script>window.location = "{{ route('diary') }}";</script>
+    @endif
+
     <main>
             <div class="tab-wrap shadow-lg min-vh-100" >
                 <!-- active tab on page load gets checked attribute -->

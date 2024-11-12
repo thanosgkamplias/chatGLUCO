@@ -34,14 +34,14 @@ class PredictionController extends Controller
         $countstats = PatientStatistic::where('patient_id', $patient_id)->count();
 
         if ($countstats < 5) {
-            $insulin_dose = ($patient_weight / 2)/3;
+            $insulin_dose = ($patient_weight / 2) / 3;
             return response()->json(['message' => $insulin_dose]);
         }
 
         $currentYear = Carbon::now()->format('Y');
         $birthYear = Carbon::parse(Auth::user()->patient->birth_at)->format('Y');
         $patient_age = $currentYear - $birthYear;
-        $glucose_new = (float)$request->input('glucose_new') ;
+        $glucose_new = (float)$request->input('glucose_new');
         $patient_gender = Auth::user()->patient->gender;
         $patient_diagnosis = Auth::user()->patient->diagnosis;
 
@@ -50,9 +50,8 @@ class PredictionController extends Controller
         $algorithm = $request->input('algorithm');
 
 
-
         $data = [
-            'glucose_old' =>$glucose_old,
+            'glucose_old' => $glucose_old,
             'glucose_new' => $glucose_new,
             'food_carbo' => $food_carbo,
             'algorithm' => $algorithm,
@@ -106,6 +105,90 @@ class PredictionController extends Controller
         } catch (\Exception $e) {
             // Handle any exceptions
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function showGlucoseForm()
+    {
+        // Display the glucose prediction form
+        return view('PredictGlucoseNew');
+    }
+
+    public function predictGlucose(Request $request)
+    {
+        // Validate the incoming request data
+        $validatedData = Validator::make($request->all(), [
+            'glucose_old' => 'required|numeric',
+            'food_carbo' => 'required|numeric',
+            'insulin_dose' => 'required|numeric',
+            'algorithm' => 'required|string',
+        ]);
+
+        if ($validatedData->fails()) {
+            return redirect()->back()->withErrors($validatedData)->withInput();
+        }
+
+        // Retrieve patient data from the authenticated user
+        $patient = Auth::user()->patient;
+        $patient_id = $patient->id;
+        $patient_weight = $patient->weight;
+
+        $currentYear = Carbon::now()->format('Y');
+        $birthYear = Carbon::parse($patient->birth_at)->format('Y');
+        $patient_age = $currentYear - $birthYear;
+
+        $patient_gender = $patient->gender;
+        $patient_diagnosis = $patient->diagnosis;
+
+        // Get form inputs
+        $glucose_old = (float)$request->input('glucose_old');
+        $food_carbo = (float)$request->input('food_carbo');
+        $insulin_dose = (float)$request->input('insulin_dose');
+        $algorithm = $request->input('algorithm');
+
+        // Prepare data for the API request
+        $data = [
+            'glucose_old' => $glucose_old,
+            'food_carbo' => $food_carbo,
+            'insulin_dose' => $insulin_dose,
+            'algorithm' => $algorithm,
+            'patient_id' => $patient_id,
+            'weight' => $patient_weight,
+            'age' => $patient_age,
+            'gender' => $patient_gender,
+            'diagnosis' => $patient_diagnosis,
+        ];
+
+        // Create a Guzzle HTTP client
+        $client = new Client();
+
+        try {
+            // Send a GET request to the Flask API with query parameters
+            $response = $client->get('http://localhost:5000/predict_glucose', [
+                'query' => $data,
+            ]);
+
+            // Decode the response
+            $responseData = json_decode($response->getBody(), true);
+
+            if (isset($responseData['error'])) {
+                // Handle any errors returned by the Flask API
+                return redirect()->back()->with('error', $responseData['error'])->withInput();
+            }
+
+            $predicted_glucose_new = $responseData['predicted_glucose_new'];
+
+            // Return the view with the predicted value and input data
+            return view('PredictGlucoseNew', [
+                'predicted_glucose_new' => $predicted_glucose_new,
+                'glucose_old' => $glucose_old,
+                'food_carbo' => $food_carbo,
+                'insulin_dose' => $insulin_dose,
+                'algorithm' => $algorithm,
+            ]);
+        } catch (\Exception $e) {
+            // Handle any exceptions
+            return redirect()->back()->with('error', 'An error occurred during glucose prediction: ' . $e->getMessage())->withInput();
         }
     }
 }

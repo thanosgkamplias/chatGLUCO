@@ -63,6 +63,11 @@ Route::get('/autocomplete',[App\Http\Controllers\DiaryController::class,'getAuto
 
 Route::get('/diary/export/{patientId}', [App\Http\Controllers\DiaryController::class, 'ExportData'])->name('export');
 
+// Glucose Prediction Routes
+Route::get('/glucose_prediction', [App\Http\Controllers\PredictionController::class, 'showGlucoseForm'])->name('glucose.prediction.form');
+Route::post('/glucose_prediction', [App\Http\Controllers\PredictionController::class, 'predictGlucose'])->name('glucose.prediction.result');
+
+
 
 
 

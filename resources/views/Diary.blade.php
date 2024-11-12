@@ -4,7 +4,7 @@
 
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-8 mt-4 ">
+            <div class="col-md-8 mt-4">
 
                 @if(Auth::user()->patient->diagnosis===null || Auth::user()->patient->weight === null)
                     <div class="alert alert-danger">
@@ -22,7 +22,7 @@
                             </a>
 
                             <button type="submit" class="btn btn-primary d-flex align-items-center create px-3">
-                                <i class="fi fi-rr-octagon-plus me-2"></i> Entry Log
+                                <i class="fi fi-rr-octagon-plus me-2"></i> New Record
                             </button>
                         </div>
 
@@ -83,7 +83,7 @@
         </div>
     </div>
 
-    @if(Auth::user()->patient->diagnosis!==null || Auth::user()->patient->weight !== null)
+    @if(Auth::user()->patient->diagnosis!==null && Auth::user()->patient->weight !== null)
         @include('PopUpForms.Diary')
     @endif
 

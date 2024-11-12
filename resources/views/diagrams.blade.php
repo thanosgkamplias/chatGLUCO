@@ -8,7 +8,7 @@
 @section('content')
 <div class="container" >
    <div class="row justify-content-center">
-        <div class="col-md-9">
+        <div class="col-md-9 mt-4">
 
                 @if(Auth::user()->patient->diagnosis===null || Auth::user()->patient->weight === null)
                 <div class="alert alert-danger">

@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache; // Add this line
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
-
 
 // Διαχειριση Χρηστών του συστήματος
 class DiaryController extends Controller
@@ -29,7 +29,6 @@ class DiaryController extends Controller
         $data = PatientStatistic::whereHas('patient', function ($query) {
             $query->where('user_id', Auth::user()->id);
         })->orderBy('created_at','desc')->paginate(15);
-
 
         return view('Diary',['data'=>$data]);
     }
@@ -75,8 +74,6 @@ class DiaryController extends Controller
         return redirect()->back()->with('message',"The new line has been successfully Deleted!");
     }
 
-
-
     public function UpdateRow(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required',
@@ -108,8 +105,6 @@ class DiaryController extends Controller
         // Redirect back with a success message
         return redirect()->back()->with('message', "The new line has been successfully updated!");
     }
-
-    // DiaryController.php
 
     public function getFoodList(Request $request)
     {
@@ -150,46 +145,53 @@ class DiaryController extends Controller
     public function getAutocomplete(Request $request)
     {
         $food = $request->input('food'); // Fetch the 'food' input from the request
-        $apiUrl = 'https://trackapi.nutritionix.com/v2/search/instant'; // Updated to Instant Search API URL
-        $appId = env('NUTRITIONIX_APP_ID');
-        $apiKey = env('NUTRITIONIX_API_KEY');
 
-        // Check if the food query is provided
         if (empty($food)) {
             return response()->json(['error' => 'Food query is required'], 400);
         }
 
-        // Make a GET request to the Nutritionix Instant Search API
-        $response = Http::withHeaders([
-            'x-app-id' => $appId,
-            'x-app-key' => $apiKey,
-            'Content-Type' => 'application/json',
-        ])->withOptions([
+        $cacheKey = 'autocomplete_' . strtolower($food);
+
+        // Check if the results are cached
+        $foodNames = Cache::remember($cacheKey, 60, function() use ($food) {
+            $apiUrl = 'https://trackapi.nutritionix.com/v2/search/instant'; // Instant Search API URL
+            $appId = env('NUTRITIONIX_APP_ID');
+            $apiKey = env('NUTRITIONIX_API_KEY');
+
+            // Make a GET request to the Nutritionix Instant Search API
+            $response = Http::withHeaders([
+                'x-app-id' => $appId,
+                'x-app-key' => $apiKey,
+                'Content-Type' => 'application/json',
+            ])->withOptions([
                 'verify' => false, // Disable SSL verification
             ])->get($apiUrl, [
-            'query' => $food,  // Pass the food query as a parameter
-            'self' => true,    // Option to include branded and common foods
-        ]);
+                'query' => $food,  // Pass the food query as a parameter
+                'self' => true,    // Option to include branded and common foods
+            ]);
 
-        if ($response->successful()) {
-            $data = $response->json();
+            if ($response->successful()) {
+                $data = $response->json();
 
-            // Combine both common and branded foods (if needed)
-            $foods = array_merge(
-                $data['common'] ?? [],  // Fetch common foods (if present)
-                $data['branded'] ?? []  // Fetch branded foods (if present)
-            );
+                // Combine both common and branded foods (if needed)
+                $foods = array_merge(
+                    $data['common'] ?? [],  // Fetch common foods (if present)
+                    $data['branded'] ?? []  // Fetch branded foods (if present)
+                );
 
-            // Extract only the 'food_name' and limit to 10 results
-            $foodNames = array_slice(array_map(function ($item) {
-                return $item['food_name'] ?? $item['food_name'];  // Handle both types
-            }, $foods), 0, 10);
+                // Extract only the 'food_name' and limit to 10 results
+                $foodNames = array_slice(array_map(function ($item) {
+                    return $item['food_name'] ?? '';  // Handle both types
+                }, $foods), 0, 10);
 
-            return response()->json(['food_names' => $foodNames]); // Return the limited food names
-        } else {
-            \Log::error('API Error: ' . $response->body()); // Log any errors
-            return response()->json(['error' => 'Unable to fetch data from Nutritionix API'], 500);
-        }
+                return $foodNames; // Return the limited food names
+            } else {
+                \Log::error('API Error: ' . $response->body()); // Log any errors
+                return [];
+            }
+        });
+
+        return response()->json(['food_names' => $foodNames]);
     }
 
     public function ExportData($patientId){
@@ -203,6 +205,6 @@ class DiaryController extends Controller
         $filename=Auth::user()->lastname."_". Auth::user()->firstname.".xlsx";
 
         return Excel::download(new DiaryExport($patientId,$userName,$userBirth,$userGender,$userWeight,$userDiagnosis),$filename);
-//        return redirect()->back();
+        //        return redirect()->back();
     }
 }
