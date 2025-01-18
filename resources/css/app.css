@@ -41,10 +41,6 @@
 /*    padding-left: 10px; !* Reduce padding to move text closer to image *!*/
 /*}*/
 
-
-
-
-
 .profile_div{
     width: 150px;
     height: 150px;
@@ -702,7 +698,14 @@ tr td:last-child {
     background-color: #e9e9e9;
 }
 
-
+/*.alert-dismissible .close {*/
+/*    position: absolute;*/
+/*    top: 50%;*/
+/*    right: 15px; !* Adjust as needed *!*/
+/*    transform: translateY(-50%);*/
+/*    line-height: 1;*/
+/*    font-size: 1.2rem; !* Adjust font size for better alignment *!*/
+/*}*/
 
 
 

@@ -25,13 +25,15 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css'])
 </head>
 <body>
 @include('layouts/navbar')
-<div id="app" class="py-5 mt-4 pl-5">
+<div id="app" class="py-5 mt-4 pl-3 pl-md-5">
     @include('layouts/messages')
     <main class="py-2">
         @yield('content')

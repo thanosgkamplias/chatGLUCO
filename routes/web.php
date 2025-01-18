@@ -67,7 +67,10 @@ Route::get('/diary/export/{patientId}', [App\Http\Controllers\DiaryController::c
 Route::get('/glucose_prediction', [App\Http\Controllers\PredictionController::class, 'showGlucoseForm'])->name('glucose.prediction.form');
 Route::post('/glucose_prediction', [App\Http\Controllers\PredictionController::class, 'predictGlucose'])->name('glucose.prediction.result');
 
+Route::delete('/my-profile/delete-account', [App\Http\Controllers\ProfileController::class, 'destroy'])->name('my.profile.delete_account');
 
+
+Route::get('/future-glucose-trend', [App\Http\Controllers\DiagramController::class, 'showFutureGlucoseTrend'])->name('future.glucose.trend');
 
 
 

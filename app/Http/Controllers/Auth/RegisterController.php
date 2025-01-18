@@ -3,38 +3,31 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Patient;
-use App\Models\User;
-use Illuminate\Foundation\Auth\RegistersUsers;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Patient; // Εισαγωγή του μοντέλου Patient για να αποθηκεύσουμε δεδομένα ασθενούς
+use App\Models\User; // Εισαγωγή του μοντέλου User για να αποθηκεύσουμε τα δεδομένα χρήστη
+use Illuminate\Foundation\Auth\RegistersUsers; // Εισαγωγή του trait RegistersUsers για λειτουργίες εγγραφής
+use Illuminate\Support\Facades\Hash; // Εισαγωγή για την κρυπτογράφηση των κωδικών
+use Illuminate\Support\Facades\Validator; // Εισαγωγή για την επικύρωση δεδομένων
+use Illuminate\Http\Request; // Εισαγωγή για τη διαχείριση αιτημάτων HTTP
+use Illuminate\Auth\Events\Registered; // Εισαγωγή του event για την εγγραφή χρηστών
 
+/**
+ * RegisterController
+ *
+ * Υπεύθυνος για τη λειτουργία εγγραφής νέων χρηστών.
+ */
 class RegisterController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Register Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles the registration of new users as well as their
-    | validation and creation. By default this controller uses a trait to
-    | provide this functionality without requiring any additional code.
-    |
-    */
-
+    // Χρήση του trait RegistersUsers που παρέχει έτοιμες λειτουργίες για εγγραφή χρηστών.
     use RegistersUsers;
 
-    /**
-     * Where to redirect users after registration.
-     *
-     * @var string
-     */
+    // Η διαδρομή στην οποία ανακατευθύνονται οι χρήστες μετά την εγγραφή.
     protected $redirectTo = '/home';
 
     /**
-     * Create a new controller instance.
-     *
-     * @return void
+     * Κατασκευαστής της κλάσης.
+     * Ορίζει το middleware 'guest' για να διασφαλίσει ότι μόνο μη συνδεδεμένοι χρήστες
+     * μπορούν να έχουν πρόσβαση στη σελίδα εγγραφής.
      */
     public function __construct()
     {
@@ -42,45 +35,89 @@ class RegisterController extends Controller
     }
 
     /**
-     * Get a validator for an incoming registration request.
+     * validator
+     * Επικυρώνει τα δεδομένα που εισάγει ο χρήστης κατά την εγγραφή.
      *
-     * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
+     * @param array $data Τα δεδομένα από τη φόρμα εγγραφής.
      */
     protected function validator(array $data)
     {
+        // Προσαρμοσμένα μηνύματα σφαλμάτων για το πεδίο του κωδικού πρόσβασης
+        $messages = [
+            'password.required' => 'Please enter a password.',
+            'password.min' => 'Your password must be at least :min characters long.',
+            'password.confirmed' => 'Password confirmation does not match.',
+            'password.regex' => 'Your password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+        ];
+
+        // Επιστροφή validator με κανόνες επικύρωσης
         return Validator::make($data, [
             'firstname' => ['required', 'string', 'max:255'],
             'lastname' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%?&])[A-Za-z\d@$!%*?&]{8,}$/'],
-            'gender'=>['required','string'],
-            'birthdate'=>['required'],
-        ]);
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'], // Το email πρέπει να είναι μοναδικό.
+            'password' => [
+                'required', 'string', 'min:8', 'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%*?&]{8,}$/'
+            ], // Ο κωδικός πρέπει να ακολουθεί συγκεκριμένα κριτήρια.
+            'gender' => ['required', 'string'],
+            'birthdate' => ['required'],
+        ], $messages);
     }
 
     /**
-     * Create a new user instance after a valid registration.
+     * register
+     * Διαχειρίζεται τη διαδικασία εγγραφής χρήστη.
      *
-     * @param  array  $data
-     * @return \App\Models\User
+     * @param Request $request Το αίτημα εγγραφής που υποβάλλεται από τον χρήστη.
+     * @return \Illuminate\Http\RedirectResponse Ανακατεύθυνση μετά την εγγραφή.
+     */
+    public function register(Request $request)
+    {
+        // Επικύρωση δεδομένων από τον validator
+        $validator = $this->validator($request->all());
+
+        // Αν η επικύρωση αποτύχει, επιστροφή στην προηγούμενη σελίδα με τα σφάλματα.
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withInput($request->except('password', 'password_confirmation')) // Διατήρηση των εισαγωγών εκτός του κωδικού.
+                ->withErrors($validator, 'register'); // Καθορισμός του error bag ως 'register'.
+        }
+
+        // Δημιουργία event για την εγγραφή νέου χρήστη
+        event(new Registered($user = $this->create($request->all())));
+
+        // Αυτόματη σύνδεση του χρήστη μετά την εγγραφή
+        $this->guard()->login($user);
+
+        // Ανακατεύθυνση μετά την επιτυχημένη εγγραφή.
+        return $this->registered($request, $user)
+            ?: redirect($this->redirectPath());
+    }
+
+    /**
+     * create
+     * Δημιουργεί έναν νέο χρήστη και τον καταχωρεί στη βάση δεδομένων.
+     *
+     * @param array $data Τα δεδομένα από τη φόρμα εγγραφής.
+     * @return User Το αντικείμενο του χρήστη που δημιουργήθηκε.
      */
     protected function create(array $data)
     {
-        $user=User::create([
+        // Δημιουργία χρήστη στη βάση δεδομένων.
+        $user = User::create([
             'firstname' => $data['firstname'],
             'lastname' => $data['lastname'],
             'email' => $data['email'],
-            'role'=>'Patient',
-            'profile_pic'=>'profile_pics/default_pic.png',
-            'password' => Hash::make($data['password']),
-
+            'role' => 'Patient',
+            'profile_pic' => 'profile_pics/default_pic.png',
+            'password' => Hash::make($data['password']), // Κρυπτογράφηση του κωδικού πρόσβασης.
         ]);
 
-        $patient=Patient::create([
-            'user_id'=>$user->id,
-            'birth_at'=>$data['birthdate'],
-            'gender'=>$data['gender'],
+        // Δημιουργία αντίστοιχης εγγραφής στον πίνακα 'Patient'.
+        $patient = Patient::create([
+            'user_id' => $user->id,
+            'birth_at' => $data['birthdate'],
+            'gender' => $data['gender'],
         ]);
         return $user;
     }
