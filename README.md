@@ -7,7 +7,7 @@ Managing diabetes is a daily challenge that requires constant monitoring and per
 ---
 
 ## Project Objective
-The main objective of ChatGLUCO is to reduce complications (hyperglycemia/hypoglycemia), improve the quality of life, and empower patient autonomy. It achieves this by bridging traditional clinical protocols—such as the Sliding Scale Protocol and Carbohydrate Calculation—with advanced Machine Learning models.
+The main objective of ChatGLUCO is to reduce complications (hyperglycemia/hypoglycemia), improve the quality of life, and empower patient autonomy. It achieves this by bridging traditional clinical protocols, such as the Sliding Scale Protocol, Carbohydrate Calculation and Weight-based Insulin Prediction, with advanced Machine Learning models.
 
 ## Key Features
 Compared to existing applications (like Diabetes:M, Sugarmate, etc.), ChatGLUCO stands out by offering a unique blend of AI predictions and deep data visualization. 
