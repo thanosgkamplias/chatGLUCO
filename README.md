@@ -1,6 +1,6 @@
 # ChatGLUCO: Web-based Application for Diabetes Patient Management
 
-Welcome to the official repository for **ChatGLUCO**! This project was developed as my undergraduate thesis at the **University of the Aegean, Department of Information and Communication Systems Engineering**. 
+This project was developed as my undergraduate thesis at the **University of the Aegean, Department of Information and Communication Systems Engineering**. 
 
 Managing diabetes is a daily challenge that requires constant monitoring and personalized care. The goal of this project is to provide a smart, web-based platform that not only acts as a digital diary for patients but also actively predicts future glucose levels and suggests insulin doses using Machine Learning algorithms.
 
