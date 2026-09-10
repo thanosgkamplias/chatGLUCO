@@ -59,7 +59,7 @@ Helps users and doctors identify patterns and understand how changes in insulin 
 
 ### 3. Future Glucose Trend Prediction
 Uses XGBoost to forecast glucose levels for the next two days (morning, noon, evening) based on a sliding window of the patient's historical data.
-![Future Glucose Trend](assets/image_c583c6.png)
+![Future Glucose Trend](assets/image_c583c6.jpg)
 
 ---
 
