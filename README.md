@@ -25,7 +25,7 @@ Compared to existing applications (like Diabetes:M, Sugarmate, etc.), ChatGLUCO 
 
 To ensure scalability and clean code separation, the system is built on a **4-Tier Architecture**.
 
-![System Architecture](image_c58384.jpg)
+![System Architecture](assets/image_c58384.jpg)
 
 1. **Presentation Tier (Frontend):** Built with Laravel's Blade Templating Engine, Bootstrap, JavaScript/jQuery, and Chart.js for responsive, real-time data visualization.
 2. **Business Logic Tier (Backend):** Powered by **PHP Laravel** (Controllers, Models, Web Routes). It handles user authentication, CRUD operations, database queries, and CSRF/XSS protection.
@@ -51,15 +51,15 @@ A huge part of patient autonomy is understanding the data. ChatGLUCO provides se
 
 ### 1. Time in Range (TIR)
 Highlights periods of hypoglycemia (under 80 mg/dL), normal levels (80-180 mg/dL), and hyperglycemia (above 180 mg/dL).
-![Time in Range](image_c583a8.jpg)
+![Time in Range](assets/image_c583a8.jpg)
 
 ### 2. Glucose-Insulin Correlation
 Helps users and doctors identify patterns and understand how changes in insulin doses affect glucose levels over time.
-![Glucose-Insulin Correlation](image_c583c1.png)
+![Glucose-Insulin Correlation](assets/image_c583c1.png)
 
 ### 3. Future Glucose Trend Prediction
 Uses XGBoost to forecast glucose levels for the next two days (morning, noon, evening) based on a sliding window of the patient's historical data.
-![Future Glucose Trend](image_c583c6.png)
+![Future Glucose Trend](assets/image_c583c6.png)
 
 ---
 
